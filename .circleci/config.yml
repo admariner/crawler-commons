@@ -2,7 +2,10 @@ version: 2
 jobs:
   tests:
     docker:
-      - image: circleci/openjdk:8-jdk
+      - image: google/cloud-sdk
+        auth:
+          username: _json_key
+          password: $GCP_AUTH
 
     environment:
       MAVEN_OPTS: -Xmx1024m
@@ -37,8 +40,6 @@ jobs:
           keys:
           - v1-dependencies-{{ checksum "pom.xml" }}
 
-      - run: cp settings.xml ~/.m2
-
       - run: mvn deploy -DskipTests
 
       - save_cache:
@@ -53,6 +54,8 @@ workflows:
     jobs:
       - tests
       - deploy:
+          context:
+            - gcloud
           requires:
             - tests
           filters:
