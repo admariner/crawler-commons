@@ -2,10 +2,7 @@ version: 2
 jobs:
   tests:
     docker:
-      - image: google/cloud-sdk
-        auth:
-          username: _json_key
-          password: $GCP_AUTH
+      - image: circleci/openjdk:8-jdk
 
     environment:
       MAVEN_OPTS: -Xmx1024m
@@ -40,7 +37,13 @@ jobs:
           keys:
           - v1-dependencies-{{ checksum "pom.xml" }}
 
-      - run: mvn deploy -DskipTests
+      - run:
+          name: Setup GCP auth
+          command: |
+            echo $GCP_AUTH > service_account.json
+            echo 'export GOOGLE_APPLICATION_CREDENTIALS=service_account.json' >> $BASH_ENV
+            source $BASH_ENV
+            mvn deploy -DskipTests
 
       - save_cache:
           paths:
